@@ -9,6 +9,8 @@
 #define SIGN        1
 #define MAX_JUMPS   16
 #define FIRST_VIEW  1
+#define R_NUMBER    17
+#define MAX_INT     2147483647
 
 
 
@@ -26,7 +28,7 @@ enum Commands
 enum Param
 {
     PARAM0 = 0,
-    PARAM1 = 1,
+    PARAMN = 1,
     PARAMR = 2,
     PARAMJ = 3,
     PARAML = 4
@@ -185,39 +187,41 @@ size_t translate (char * program, unsigned char * translated_program, unsigned c
         assert (command);
         fprintf (stdout, "\nLine in file:\t%s", command);
 
-#define DEF_CMD( name, num, extra, dont_need2 )                                                                      \
-                                                            if ( ! strcmp (command, #name))                                             \
-                                                            {                                                                           \
-                                                                if (extra != PARAML)                                                    \
-                                                                {                                                                       \
-                                                                    *(translated_program++) = num;                                          \
-                                                                    trp_size++;                                                             \
-                                                                }                                                                       \
-                                                                if (extra > 0)                                 \
-                                                                {                                                                       \
-                                                                    command = strtok (NULL, " \n\r\0");                                 \
-                                                                    if (command == NULL)                                                \
-                                                                    {                                                                   \
-                                                                        printf ("\nFAIL: bad command");                                         \
-                                                                        abort ();                                                               \
-                                                                    }                                                                           \
-                                                                    printf ("\t%s", command);                                                     \
-                                                                    size_t shift = convert_tochar (command, translated_program, extra, jump, trp_size);  \
-                                                                    if (extra != PARAML)                                                    \
-                                                                    {                                                                       \
-                                                                        translated_program += shift;                                            \
-                                                                        trp_size += shift;                                                      \
-                                                                    }                                                                       \
-                                                                }                                                                       \
-                                                            }                                                                           \
+#define DEF_CMD( name, num, extra, dont_need2 )                                                                                                             \
+                                                            if ( ! strcmp (command, #name))                                                                 \
+                                                            {                                                                                               \
+                                                                if (extra != PARAML)                                                                        \
+                                                                {                                                                                           \
+                                                                    *(translated_program++) = num;                                                          \
+                                                                    trp_size++;                                                                             \
+                                                                }                                                                                           \
+                                                                if (extra > 0)                                                                              \
+                                                                {                                                                                           \
+                                                                    command = strtok (NULL, " \n\r\0");                                                     \
+                                                                    if (command == NULL)                                                                    \
+                                                                    {                                                                                       \
+                                                                        printf ("\nFAIL: bad command");                                                     \
+                                                                        abort ();                                                                           \
+                                                                    }                                                                                       \
+                                                                    printf ("\t%s", command);                                                               \
+                                                                    size_t shift = convert_tochar (command, translated_program, extra, jump, trp_size);     \
+                                                                    if (extra != PARAML)                                                                    \
+                                                                    {                                                                                       \
+                                                                        translated_program += shift;                                                        \
+                                                                        trp_size += shift;                                                                  \
+                                                                    }                                                                                       \
+                                                                }                                                                                           \
+                                                            }                                                                                               \
                                                             else
-#include "cmdList.h"
+
+
+        #include "cmdList.h"
         {
             printf ("\nERROR: Unknown command: %s\n", command);
             abort ();
         }
 
-#undef DEF_CMD
+        #undef DEF_CMD
 
         command = strtok (NULL, " \n\r\0");
     }
@@ -243,12 +247,23 @@ int convert_tochar (char * command, unsigned char * program, int type, unsigned 
             printf ("\nFAIL: bad register %c\t\n", *command);
             abort ();
         }
-        *program = *(++command) - '0';
+        int R_num = *(++command) - '0';
+        if (R_num < 0 && R_num > R_NUMBER)
+        {
+            printf ("\nFAIL: bad register number. It must be more than 0 and less than 256\n %c\t\n", *command);
+            abort ();
+        }
+        *program = R_num;
         return sizeof (unsigned char);
     }
-    else if (type == PARAM1)
+    else if (type == PARAMN)
     {
-        int int_number = strtol (command, NULL, 0);
+        long long int int_number = strtol (command, NULL, 0);
+        if (fabs (int_number) > MAX_INT)
+        {
+            printf ("\nFAIL: too much number\n");
+            abort ();
+        }
 
         if (int_number >= 0)
             *program = 0;

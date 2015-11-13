@@ -5,18 +5,19 @@
 #include <windows.h>
 
 #define INIT_SIZE               2
-#define R_NUMBER                16
+#define R_NUMBER                17
+#define MAX_INT                 2147483647
 #define NAME( name )            #name
-#define ASSERT_OBJ( type, obj )   if ( ! (type ## _is_ok(obj)))\
-                                {\
-                                    fprintf (stderr,    "\n\n********   ERROR   ********\n\n");\
-                                    fprintf (stderr,    "ERROR:\t\t"#type"\n"\
-                                                        "In file:\t%s\n"\
-                                                        "In function:\t%s\n"\
-                                                        "Line:\t\t%d\n"\
-                                                        "Object:\t\t"#obj"\n", __FILE__, __PRETTY_FUNCTION__, __LINE__);\
-                                    fprintf (stderr,    "\n\n***************************\n\n");\
-                                    abort ();\
+#define ASSERT_OBJ( type, obj )   if ( ! (type ## _is_ok(obj)))                                                             \
+                                {                                                                                           \
+                                    fprintf (stderr,    "\n\n********   ERROR   ********\n\n");                             \
+                                    fprintf (stderr,    "ERROR:\t\t"#type"\n"                                               \
+                                                        "In file:\t%s\n"                                                    \
+                                                        "In function:\t%s\n"                                                \
+                                                        "Line:\t\t%d\n"                                                     \
+                                                        "Object:\t\t"#obj"\n", __FILE__, __PRETTY_FUNCTION__, __LINE__);    \
+                                    fprintf (stderr,    "\n\n***************************\n\n");                             \
+                                    abort ();                                                                               \
                                 }
 
 typedef struct
@@ -74,7 +75,7 @@ int main()
     Stack_t * stk = stack_init (INIT_SIZE);
     ASSERT_OBJ(Stack_t, stk)
 
-    int * registers = (int *) calloc (R_NUMBER + 1, sizeof (int));
+    int * registers = (int *) calloc (R_NUMBER, sizeof (int));
 
     run_commands (stk, registers, commands, commands_size);
     stack_dump (stk, NAME (stk));
@@ -305,15 +306,13 @@ int run_commands (Stack_t * stk, int * R, const unsigned char * commands, size_t
 
 
     size_t cur = 0;
-    int tmp = 0;
+    long long int tmp = 0;
     int sign = 0;
 
     while (cur < sz)
     {
         tmp = 0;
         sign = 0;
-
-        //stack_dump (stk, NAME( stk ));
 
         switch (commands[cur++])
         {
@@ -324,6 +323,7 @@ int run_commands (Stack_t * stk, int * R, const unsigned char * commands, size_t
         #include "cmdList.h"
         }
     }
-
     #undef DEF_CMD
+
+    return 0;
 }
