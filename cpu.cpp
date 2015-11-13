@@ -51,7 +51,7 @@ int         stack_pop               (Stack_t * stk);
 int         load_commands           (unsigned char * buffer, const char * filename, size_t sz);
 size_t      count_commands_size     (const char * filename);
 void        dump_commands           (const unsigned char * commands, size_t sz);
-int         run_commands            (Stack_t * stk, int * R, const unsigned char * commands, size_t sz);
+int         run_commands            (Stack_t * stk, Stack_t * fcalls, int * R, const unsigned char * commands, size_t sz);
 void        R_dump                  (int * R);
 
 
@@ -72,12 +72,14 @@ int main()
 
 
     //program block
-    Stack_t * stk = stack_init (INIT_SIZE);
-    ASSERT_OBJ(Stack_t, stk)
+    Stack_t * stk    = stack_init (INIT_SIZE);
+    Stack_t * fcalls = stack_init (INIT_SIZE);
+    ASSERT_OBJ (Stack_t, stk)
+    ASSERT_OBJ (Stack_t, fcalls)
 
     int * registers = (int *) calloc (R_NUMBER, sizeof (int));
 
-    run_commands (stk, registers, commands, commands_size);
+    run_commands (stk, fcalls, registers, commands, commands_size);
     stack_dump (stk, NAME (stk));
     R_dump (registers);
 
@@ -85,6 +87,7 @@ int main()
     free (filename);
     free (registers);
     stack_erase (&stk);
+    stack_erase (&fcalls);
 
     system ("pause");
 
@@ -293,7 +296,7 @@ void R_dump (int * R)
 
 
 
-int run_commands (Stack_t * stk, int * R, const unsigned char * commands, size_t sz)
+int run_commands (Stack_t * stk, Stack_t * fcalls, int * R, const unsigned char * commands, size_t sz)
 {
     ASSERT_OBJ  (Stack_t, stk);
     assert      (commands);
