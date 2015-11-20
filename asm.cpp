@@ -247,10 +247,15 @@ int convert_tochar (char * command, unsigned char * program, int type, unsigned 
             printf ("\nFAIL: bad register %c\t\n", *command);
             abort ();
         }
-        int R_num = *(++command) - '0';
-        if (R_num < 0 && R_num > R_NUMBER)
+        assert (++command);
+        int R_num = *command - '0';
+        assert (++command);
+        if (*command >= '0' && *command <= '9') // read the second number
+            R_num = R_num * 10 + (*command - '0');
+
+        if (R_num <= 0 || R_num > R_NUMBER)
         {
-            printf ("\nFAIL: bad register number. It must be more than 0 and less than 256\n %c\t\n", *command);
+            printf ("\nFAIL: bad register number. It must be more than 0 and less than 18\n %c\t\n", *command);
             abort ();
         }
         *program = R_num;
